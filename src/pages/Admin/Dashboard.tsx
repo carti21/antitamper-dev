@@ -70,13 +70,17 @@ export default function DashboardPage() {
           inactive: inactiveDevices,
         });
 
-        const regionCounts: Record<
-          string,
-          { active: number; inactive: number }
-        > = {};
+        // Build a map of factoryId -> region
+        const factoryRegionMap: Record<string, string> = {};
+        if (factoryRes.data?.results?.docs) {
+          factoryRes.data.results.docs.forEach((factory: any) => {
+            factoryRegionMap[factory.id] = factory.region;
+          });
+        }
 
+        const regionCounts: Record<string, { active: number; inactive: number }> = {};
         deviceRes.data.results.docs.forEach((device: Device) => {
-          const region = device.region || "Unknown Region";
+          const region = factoryRegionMap[device.factory];
           if (!regionCounts[region]) {
             regionCounts[region] = { active: 0, inactive: 0 };
           }

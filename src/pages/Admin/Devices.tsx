@@ -30,6 +30,7 @@ interface Factory {
   id: string;
   name: string;
   location: string;
+  region?: string;
 }
 interface Device {
   id: string;
@@ -97,7 +98,7 @@ const Modal = ({
 
 export default function DevicesPage() {
   const navigate = useNavigate();
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(20);
   // const [isBulkUploadModalOpen, setBulkUploadModalOpen] = useState(false);
   const [isRegisterDeviceModalOpen, setRegisterDeviceModalOpen] =
     useState(false);
@@ -429,7 +430,10 @@ export default function DevicesPage() {
             : "Inactive",
           device.factory_name || "N/A",
           device.factory_location || "N/A",
-          "N/A", // Region placeholder
+          (() => {
+            const factory = factories.find(f => f.id === device.factory);
+            return factory ? factory.region : "";
+          })(),
           device.serial_number || "N/A",
           device.phone_number || "Not Assigned",
           device.device_sim_card_no || "030000 119 4773",
@@ -563,41 +567,6 @@ export default function DevicesPage() {
           <span className={isActive ? "text-green-600" : "text-red-600"}>
             {isActive ? "Active" : "Inactive"}
           </span>
-        );
-      },
-    },
-    {
-      header: "Subscription",
-      accessor: "subscription_expiry",
-      render: (row) => {
-        if (!row.subscription_expiry) {
-          return <span className="text-gray-400">No Data</span>;
-        }
-        const expiry = new Date(row.subscription_expiry);
-        const now = new Date();
-        const diffDays = Math.ceil(
-          (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-        );
-
-        let badge = { label: "Active", color: "bg-green-100 text-green-700" };
-
-        if (diffDays < 0) {
-          badge = { label: "Expired", color: "bg-red-100 text-red-700" };
-        } else if (diffDays <= 30) {
-          badge = { label: "Expiring Soon", color: "bg-orange-100 text-orange-700" };
-        }
-
-        return (
-          <div>
-            <span
-              className={`inline-block px-2 py-1 rounded text-xs font-semibold ${badge.color}`}
-            >
-              {badge.label}
-            </span>
-            <div className="text-xs text-gray-500 mt-1">
-              Expiry: {expiry.toLocaleDateString()}
-            </div>
-          </div>
         );
       },
     },
